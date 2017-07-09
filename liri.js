@@ -5,7 +5,7 @@ var keys = require("./keys.js");
 var spotify = keys.spotifyKeys;
 var fs = require("fs");
 var request = require('request');
-
+var random = require('./random.js');
 
 var nodeArgs = process.argv;
 
@@ -13,83 +13,70 @@ var movieName = "";
 
 var action = process.argv[2];
 var value = process.argv[3];
+var output;
 
-switch (action) {
-	case "my-tweets":
-	myTweets();
-	break;
-
-	case "spotify-this-song":
-	spotifyThisSong(value);
-	break;
-
-	case "movie-this":
-	movieThis();
-	break;
-
-	case "do-what-it-says":
-	doWhatItSays();
-	break;
-}
 
 function myTweets() {
 var client = new Twitter(keys.twitterKeys);
 var params = {screen_name: 'ANTHONY70518011'};
+var counter = 0;
+
 client.get('statuses/user_timeline', params, function(error, tweets, response) {
   if (!error) {
-    console.log(tweets);
-  }
-  else {
-  	console.log(error);
-  }
+  	for(var i = 0; i < tweets.length; i++)  {
+        output = ('\n' + '@' + params.screen_name + ' said ' + tweets[i].text + ' at ' + tweets[i].created_at +'\n');
+        console.log(output);
+        // append();
+      }
+    } else {
+      console.log('twitter error');
+    }
 });
 }
 
 
 
-// function spotifyThisSong(value){
-//   var client = new Spotify(keys.spotifyKeys);
-
-//   if(value === undefined) {
-//     var value = "The+Sign";
-//   }
-
-//   client.search({ type: 'track', query: value }, function(err, data) {
-//     if (err) {
-//        console.log(err);
-//        return;
-//     } 
-//       console.log((data.tracks.items[0]));
-//   });
-// }
-
 function spotifyThisSong(value) {
-	var client = new Spotify(keys.spotifyKeys);
-	var songName = "";
+  var client = new Spotify(keys.spotifyKeys);
+  var thisSong = "";
 
-	for (var i = 3; i < nodeArgs.length; i++) {
+  for (var i = 3; i < nodeArgs.length; i++) {
     if (i > 3 && i < nodeArgs.length) {
-        songName = songName + "+" + nodeArgs[i];
+        thisSong = thisSong + "+" + nodeArgs[i];
     } else {
-        songName += nodeArgs[i];
+        thisSong += nodeArgs[i];
     }
   }
 
-  if(songName === undefined) {
-    var songName = "The Sign";
+  if(value == undefined) {
+    var value = "The Sign Ace of Base";
   }
 
-  client.search({ type: 'track', query: songName }, function(err, data) {
-    if (err) {
-      return console.log('Error occured ' + err);
-    }
-    console.log((data.tracks.items[1]));
-  });
+  client.search({ type: 'track', query: value }, function(err, data) {
+   var thisSong;
+      if(!err && (data.tracks.items.length >= 1)) {
+        thisSong = data.tracks.items[0];
+        var artistConcat = thisSong.artists[0].name;
+        for(var a = 1; a < thisSong.artists.length; a++) {
+          artistConcat += ', ' + thisSong.artists[a].name;
+        }
+        output = ('\nSong Info \n\nArtist: ' + artistConcat + '\n\nSong Title: ' + thisSong.name + '\n\nOriginal Album: ' + thisSong.album.name + '\n\nPreview: ' + thisSong.preview_url + '\n');
+        console.log(output);
+        append();
+      
+      } else {
+        console.log('spotify error or there is no song matching that title.');
+      }
+    });
 }
 
 
 
 function movieThis() {
+  // I can't seem to get the undefined to work.
+    if(value == undefined) {
+    var value = "Mr Nobody";
+  }
 for (var i = 3; i < nodeArgs.length; i++) {
     if (i > 3 && i < nodeArgs.length) {
         movieName = movieName + "+" + nodeArgs[i];
@@ -108,30 +95,55 @@ request(queryUrl, function(error, response, body) {
         console.log("Title: " + JSON.parse(body).Title);
         console.log("Year: " + JSON.parse(body).Year);
         console.log("Rating: " + JSON.parse(body).Rated);
-        console.log("Rotten Tomatoes Rating: " + JSON.parse(body).TomatoMeter);
+        // I can't figure out the tomatorating response
+        console.log("Rotten Tomatoes Rating: " + JSON.parse(body).rottentomatoesrating);
         console.log("Language: " + JSON.parse(body).Language);
         console.log("Plot: " + JSON.parse(body).Plot);
         console.log("Actors: " + JSON.parse(body).Actors);
         //console.log(JSON.stringify(response));
+    } else {
+      console.log("If you haven't watched Mr. Nobody, then you should 'http://www.imdb.com/title/tt0485947/' It's on Netflix!");
     }
 });
 }
+function doWhatItSays() {
 
-function doWhatItSays(){
-
-fs.readFile("random.txt", "utf8", function(err, data) {
-  if (err) {
-    return console.log(err);
-  }
-
-  // Break the string down by comma separation and store the contents into the output array.
-  var output = data.split(",");
-
-  // Loop Through the newly created output array
-  for (var i = 0; i < output.length; i++) {
-
-    // Print each element (item) of the array/
-    console.log(output[i]);
-  }
-});
+  var pickRandom = Math.floor(Math.random() * random.commands.length);
+  action = random.commands[pickRandom].comm;
+  value = random.commands[pickRandom].argu;
+  output = ("\nyou've selected the random command " + random.commands[pickRandom].comm + " to learn more about " + random.commands[pickRandom].argu + '.\n');
+choose();
+append();
 }
+
+function choose() {
+switch (action) {
+  case "my-tweets":
+  myTweets();
+  break;
+
+  case "spotify-this-song":
+  spotifyThisSong(value);
+  break;
+
+  case "movie-this":
+  movieThis();
+  break;
+
+  case "do-what-it-says":
+  doWhatItSays();
+  break;
+}
+}
+
+function append() {
+  fs.appendFile('log.txt', output, function callback(error) {
+    if(!error) {
+      console.log('this data has been added to your log.');
+    } else {
+      console.log("sorry, the data didn't write to file.");
+    }
+  });
+}
+
+choose();
