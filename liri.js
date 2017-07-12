@@ -26,12 +26,13 @@ client.get('statuses/user_timeline', params, function(error, tweets, response) {
   	for(var i = 0; i < tweets.length; i++)  {
         output = ('\n' + '@' + params.screen_name + ' said ' + tweets[i].text + ' at ' + tweets[i].created_at +'\n');
         console.log(output);
-        // append();
+        append();
       }
     } else {
       console.log('twitter error');
     }
 });
+
 }
 
 
@@ -48,8 +49,8 @@ function spotifyThisSong(value) {
     }
   }
 
-  if(value == undefined) {
-    var value = "The Sign Ace of Base";
+  if(!value) {
+    value = "The Sign Ace of Base";
   }
 
   client.search({ type: 'track', query: value }, function(err, data) {
@@ -68,14 +69,16 @@ function spotifyThisSong(value) {
         console.log('spotify error or there is no song matching that title.');
       }
     });
+
 }
 
 
 
 function movieThis() {
+	console.log(value);
   // I can't seem to get the undefined to work.
-    if(value == undefined) {
-    var value = "Mr Nobody";
+    if(!value) {
+    value = "Mr Nobody";
   }
 for (var i = 3; i < nodeArgs.length; i++) {
     if (i > 3 && i < nodeArgs.length) {
@@ -100,12 +103,18 @@ request(queryUrl, function(error, response, body) {
         console.log("Language: " + JSON.parse(body).Language);
         console.log("Plot: " + JSON.parse(body).Plot);
         console.log("Actors: " + JSON.parse(body).Actors);
+
+  append();
         //console.log(JSON.stringify(response));
     } else {
       console.log("If you haven't watched Mr. Nobody, then you should 'http://www.imdb.com/title/tt0485947/' It's on Netflix!");
     }
 });
+append();
 }
+
+
+
 function doWhatItSays() {
 
   var pickRandom = Math.floor(Math.random() * random.commands.length);
